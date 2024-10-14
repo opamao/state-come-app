@@ -18,7 +18,7 @@ class CommercialDetail {
   final String? nom;
   final String? description;
   final LatLng? coordinates;
-  List<String>? visite;
+  List<LatLng>? visite;
 
   CommercialDetail({
     this.nom,
@@ -46,36 +46,36 @@ class _HomePageState extends State<HomePage> {
         description: 'Objectif 40/100',
         coordinates: const LatLng(5.326444, -4.019020),
         visite: [
-          "Immeuble cnam",
-          "Immeuble france",
-          "Immeuble maroc",
+          const LatLng(5.372731, -4.089429),
+          const LatLng(5.373724, -4.092315),
+          const LatLng(5.370274, -4.087584),
         ]),
     CommercialDetail(
         nom: 'Theodore',
         description: 'Objectif 60/100',
         coordinates: const LatLng(5.370156, -4.086372),
         visite: [
-          "Boulevar grand homme",
-          "SIGICI tranquille",
-          "Nestle",
+          const LatLng(5.370156, -4.086372),
+          const LatLng(5.370156, -4.086372),
+          const LatLng(5.370156, -4.086372),
         ]),
     CommercialDetail(
         nom: 'Nguessan',
         description: 'Objectif 80/100',
         coordinates: const LatLng(5.372196, -4.089644),
         visite: [
-          "JHJn dkjfsd",
-          "Immeuble savon",
-          "Immeuble cafe",
+          const LatLng(5.370156, -4.086372),
+          const LatLng(5.370156, -4.086372),
+          const LatLng(5.370156, -4.086372),
         ]),
     CommercialDetail(
         nom: 'Kouassi',
         description: 'Objectif 15/100',
         coordinates: const LatLng(5.371807, -4.088491),
         visite: [
-          "Rue carrefour tranquille",
-          "Hotel famah",
-          "Doupe tranquille",
+          const LatLng(5.370156, -4.086372),
+          const LatLng(5.370156, -4.086372),
+          const LatLng(5.370156, -4.086372),
         ]),
   ];
 
@@ -177,20 +177,7 @@ class _HomePageState extends State<HomePage> {
                     fontWeight: FontWeight.normal,
                   ),
                 ),
-                SizedBox(
-                  height: 150,
-                  child: ListView.builder(
-                    itemCount: position.visite!.length,
-                    itemBuilder: (context, index) {
-                      return Text(
-                        position.visite![index],
-                        style: TextStyle(
-                          color: appColorPrimary,
-                        ),
-                      );
-                    },
-                  ),
-                ),
+                MapView(startPoint: position.coordinates!, points: position.visite!)
               ],
             ),
           ),
@@ -228,5 +215,57 @@ class _HomePageState extends State<HomePage> {
               ),
       ),
     );
+  }
+}
+
+class MapView extends StatelessWidget {
+  final LatLng startPoint;
+  final List<LatLng> points;
+
+  const MapView({required this.startPoint, required this.points});
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      height: 200, // Adjust the height as needed
+      child: GoogleMap(
+        initialCameraPosition: CameraPosition(
+          target: startPoint,
+          zoom: 12,
+        ),
+        markers: _createMarkers(),
+        polylines: {
+          Polyline(
+            polylineId: const PolylineId('route'),
+            points:  _generateRoute(),
+            color: Colors.blue,
+            width: 5,
+          ),
+        },
+      ),
+    );
+  }
+
+  Set<Marker> _createMarkers() {
+    Set<Marker> markers = {};
+    markers.add(Marker(
+      markerId: const MarkerId('start'),
+      position: startPoint,
+      infoWindow: const InfoWindow(title: 'Départ'),
+    ));
+    for (var point in points) {
+      markers.add(Marker(
+        markerId: MarkerId(point.toString()),
+        position: point,
+        infoWindow: InfoWindow(title: 'Visite: ${point.latitude}, ${point.longitude}'),
+      ));
+    }
+    return markers;
+  }
+
+  List<LatLng> _generateRoute() {
+    List<LatLng> route = [startPoint];
+    route.addAll(points);
+    return route;
   }
 }
